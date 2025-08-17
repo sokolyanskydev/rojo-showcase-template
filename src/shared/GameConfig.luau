@@ -45,7 +45,7 @@ local config: GameConfig = {
 	CastCooldownSeconds = 3,
 	Mana = {
 		Max = 100,
-		RegenPerSecond = 5,
+		RegenPerSecond = 1,
 		PuddleCost = 20,
 	},
 }

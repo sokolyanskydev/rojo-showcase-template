@@ -25,10 +25,18 @@ local function spawnPickup(position: Vector3, kind: string)
     part.Anchored = true
     part.CanCollide = false
     part.Shape = Enum.PartType.Ball
-    part.Size = Vector3.new(1.2, 1.2, 1.2)
+    part.Size = Vector3.new(1.4, 1.4, 1.4)
     part.Position = position + Vector3.new(0, 1.25, 0)
-    part.Name = kind == "Mana" and "ManaOrb" or "HealthOrb"
-    part.Color = kind == "Mana" and Color3.fromRGB(80, 140, 255) or Color3.fromRGB(80, 220, 80)
+    if kind == "Mana" then
+        part.Name = "ManaOrb"
+        part.Color = Color3.fromRGB(80, 140, 255)
+    elseif kind == "Health" then
+        part.Name = "HealthOrb"
+        part.Color = Color3.fromRGB(80, 220, 80)
+    else
+        part.Name = "CoinOrb"
+        part.Color = Color3.fromRGB(240, 210, 60)
+    end
     part.Material = Enum.Material.Neon
     part.Parent = pickupsFolder
 
@@ -37,8 +45,8 @@ local function spawnPickup(position: Vector3, kind: string)
         if part and part.Parent then part:Destroy() end
     end)
 
-    -- Touch handler
-    part.Touched:Connect(function(hit)
+    -- Touch/nearby handler with slightly larger pickup radius
+    local function tryPickup(hit: BasePart)
         local character = hit:FindFirstAncestorWhichIsA("Model")
         if not character then return end
         local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -47,15 +55,39 @@ local function spawnPickup(position: Vector3, kind: string)
         if not player then return end
         if kind == "Health" then
             humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + 50)
-        else
+        elseif kind == "Mana" then
             local stats = player:FindFirstChild("Stats")
             local mana = stats and stats:FindFirstChild("Mana")
             if mana and mana:IsA("IntValue") then
                 local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
                 mana.Value = math.min(GameConfig.Mana.Max, mana.Value + 50)
             end
+        else
+            -- Coins
+            local stats = player:FindFirstChild("Stats")
+            local coins = stats and stats:FindFirstChild("Coins")
+            if coins and coins:IsA("IntValue") then
+                coins.Value += 10
+            end
         end
         if part then part:Destroy() end
+    end
+    part.Touched:Connect(tryPickup)
+    -- Also poll nearby characters for larger radius pickup
+    task.spawn(function()
+        while part and part.Parent do
+            task.wait(0.25)
+            for _, plr in ipairs(Players:GetPlayers()) do
+                local ch = plr.Character
+                local hrp = ch and ch:FindFirstChild("HumanoidRootPart")
+                if hrp and hrp:IsA("BasePart") then
+                    if (hrp.Position - part.Position).Magnitude <= 3 then
+                        tryPickup(hrp)
+                        break
+                    end
+                end
+            end
+        end
     end)
 end
 
@@ -73,7 +105,9 @@ task.spawn(function()
         local base = hrp.Position
         local offset = Vector3.new(math.random(-60, 60), 0, math.random(-60, 60))
         local pos = base + offset
-        spawnPickup(pos, math.random() < 0.5 and "Health" or "Mana")
+        local roll = math.random()
+        local kind = if roll < 0.45 then "Health" elseif roll < 0.9 then "Mana" else "Coin"
+        spawnPickup(pos, kind)
     end
 end)
 

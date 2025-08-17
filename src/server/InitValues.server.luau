@@ -22,6 +22,11 @@ local function setupPlayer(player: Player)
     mana.Value = GameConfig.Mana.Max
     mana.Parent = folder
 
+    local coins = Instance.new("IntValue")
+    coins.Name = "Coins"
+    coins.Value = 0
+    coins.Parent = folder
+
     -- Regen loop
     task.spawn(function()
         while player.Parent do

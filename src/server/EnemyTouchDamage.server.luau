@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
-local DAMAGE_PER_SECOND = 2
+local DAMAGE_PER_SECOND = 3
 local TICK_SECONDS = 0.5
 local PROXIMITY_RADIUS = 4 -- studs around the enemy where player also takes damage
 -- Track active loops per humanoid per enemy model (weak maps to avoid leaks)

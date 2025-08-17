@@ -81,6 +81,19 @@ manaLabel.TextSize = 12
 manaLabel.Font = Enum.Font.GothamMedium
 manaLabel.Parent = manaFrame
 
+-- Coins HUD under mana
+local coinsFrame = Instance.new("TextLabel")
+coinsFrame.Name = "Coins"
+coinsFrame.Size = UDim2.new(0.25, 0, 0, 14)
+coinsFrame.Position = UDim2.new(0.02, 0, 0.02, 32)
+coinsFrame.BackgroundTransparency = 0.4
+coinsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 20)
+coinsFrame.TextColor3 = Color3.fromRGB(255, 230, 120)
+coinsFrame.TextSize = 12
+coinsFrame.Font = Enum.Font.GothamSemibold
+coinsFrame.Text = "Coins: 0"
+coinsFrame.Parent = gui
+
 local function hookHumanoid()
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoid = character:WaitForChild("Humanoid")
@@ -116,11 +129,25 @@ local function hookMana()
     updateMana()
 end
 
+local function hookCoins()
+    local statsFolder = player:WaitForChild("Stats", 5)
+    if not statsFolder then return end
+    local coins: IntValue? = statsFolder:FindFirstChild("Coins") :: any
+    if not coins or not coins:IsA("IntValue") then return end
+    local function updateCoins()
+        coinsFrame.Text = string.format("Coins: %d", coins.Value)
+    end
+    coins:GetPropertyChangedSignal("Value"):Connect(updateCoins)
+    updateCoins()
+end
+
 hookHumanoid()
 hookMana()
+hookCoins()
 player.CharacterAdded:Connect(function()
     hookHumanoid()
     task.defer(hookMana)
+    task.defer(hookCoins)
 end)
 
 

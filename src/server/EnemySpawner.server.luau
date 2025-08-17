@@ -101,7 +101,14 @@ task.spawn(function()
 									local kills = stats:FindFirstChild("Kills")
 									if kills and kills:IsA("IntValue") then
 										kills.Value += 1
-										-- optional: could log kill credited
+										-- Award coins to killer
+										local playerStats = killerPlayer:FindFirstChild("Stats")
+										if playerStats then
+											local coins = playerStats:FindFirstChild("Coins")
+											if coins and coins:IsA("IntValue") then
+												coins.Value += (enemy.Name == "EnemyElite" and 25 or 10)
+											end
+										end
 									end
 								end
 							end
