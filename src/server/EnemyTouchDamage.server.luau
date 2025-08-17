@@ -5,8 +5,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local DAMAGE_PER_SECOND = 1
+local TICK_SECONDS = 0.5
+-- Track active loops per humanoid per enemy model (weak maps to avoid leaks)
+local activeByHumanoid = setmetatable({}, { __mode = "k" })
 
-local function onTouched(enemyRoot: BasePart, other: BasePart)
+local function onTouched(enemyPart: BasePart, other: BasePart)
 	local character = other:FindFirstAncestorWhichIsA("Model")
 	if not character then return end
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -15,65 +18,98 @@ local function onTouched(enemyRoot: BasePart, other: BasePart)
 	local player = Players:GetPlayerFromCharacter(character)
 	if not player then return end
 
-	local full = enemyRoot:GetFullName()
-	local safe = (full:gsub("[^%w_]", "_"))
-	local key = "_EnemyTouching_" .. safe
-	if humanoid:GetAttribute(key) then return end
-	humanoid:SetAttribute(key, true)
+	-- Identify the enemy model instance for per-enemy damage tracking
+	local enemyModel = enemyPart:FindFirstAncestorWhichIsA("Model")
+	if not enemyModel then return end
+	local perEnemy = activeByHumanoid[humanoid]
+	if perEnemy == nil then
+		perEnemy = setmetatable({}, { __mode = "k" })
+		activeByHumanoid[humanoid] = perEnemy
+	end
+	if perEnemy[enemyModel] then return end
+	perEnemy[enemyModel] = true
 
-	local alive = true
+	local running = true
+	local function cleanup()
+		if not running then return end
+		running = false
+		local map = activeByHumanoid[humanoid]
+		if map then map[enemyModel] = nil end
+	end
+
+	local diedConn, ancestryConn
+	diedConn = humanoid.Died:Connect(function()
+		Logger.info("Player:Died", { player = player.Name, cause = "EnemyTouch", enemy = enemyModel:GetFullName() })
+		if diedConn then diedConn:Disconnect() end
+		if ancestryConn then ancestryConn:Disconnect() end
+		cleanup()
+	end)
+
+	ancestryConn = enemyModel.AncestryChanged:Connect(function(_, parent)
+		if parent == nil then
+			if diedConn then diedConn:Disconnect() end
+			if ancestryConn then ancestryConn:Disconnect() end
+			cleanup()
+		end
+	end)
+
+	-- Periodically check for contact across any body part, not just the initial one
 	task.spawn(function()
-		while alive and enemyRoot.Parent and humanoid.Parent do
-			humanoid:SetAttribute("LastDamageCause", "EnemyTouch")
-			humanoid:TakeDamage(DAMAGE_PER_SECOND)
-			task.wait(1)
-		end
-	end)
+		local timeWithoutContact = 0
+		while running and enemyModel.Parent and humanoid.Parent do
+			local touching = false
+			for _, part in ipairs(enemyModel:GetDescendants()) do
+				if part:IsA("BasePart") then
+					for _, tp in ipairs((part :: BasePart):GetTouchingParts()) do
+						if tp:IsDescendantOf(character) then
+							touching = true
+							break
+						end
+					end
+					if touching then break end
+				end
+			end
 
-	local conn1, conn2, conn3
-	conn1 = humanoid.Died:Connect(function()
-		alive = false
-		Logger.info("Player:Died", { player = player.Name, cause = "EnemyTouch", enemy = enemyRoot:GetFullName() })
-		if conn1 then conn1:Disconnect() end
-		if conn2 then conn2:Disconnect() end
-		if conn3 then conn3:Disconnect() end
-		humanoid:SetAttribute(key, nil)
-	end)
-	conn2 = enemyRoot.Touched:Connect(function(hit)
-		if hit == other then
-			alive = true
+			if touching then
+				timeWithoutContact = 0
+				humanoid:SetAttribute("LastDamageCause", "EnemyTouch")
+				humanoid:TakeDamage(DAMAGE_PER_SECOND * TICK_SECONDS)
+			else
+				timeWithoutContact += TICK_SECONDS
+				if timeWithoutContact >= 1 then
+					break
+				end
+			end
+
+			task.wait(TICK_SECONDS)
 		end
-	end)
-	conn3 = enemyRoot.TouchEnded:Connect(function(hit)
-		if hit == other then
-			alive = false
-			if conn1 then conn1:Disconnect() end
-			if conn2 then conn2:Disconnect() end
-			if conn3 then conn3:Disconnect() end
-			humanoid:SetAttribute(key, nil)
-			Logger.info("Enemy:TouchEnded", { enemy = enemyRoot:GetFullName(), player = player.Name })
-		end
+		if diedConn then diedConn:Disconnect() end
+		if ancestryConn then ancestryConn:Disconnect() end
+		cleanup()
+		Logger.info("Enemy:ContactEnded", { enemy = enemyModel:GetFullName(), player = player.Name })
 	end)
 end
 
 workspace.ChildAdded:Connect(function(child)
 	if child:IsA("Model") and child.Name == "Enemy" then
-		local root = child:FindFirstChild("HumanoidRootPart")
-		if root and root:IsA("BasePart") then
-			root.Touched:Connect(function(hit)
-				onTouched(root, hit)
-			end)
+		for _, desc in ipairs(child:GetDescendants()) do
+			if desc:IsA("BasePart") then
+				desc.Touched:Connect(function(hit)
+					onTouched(desc, hit)
+				end)
+			end
 		end
 	end
 end)
 
 for _, child in ipairs(workspace:GetChildren()) do
 	if child:IsA("Model") and child.Name == "Enemy" then
-		local root = child:FindFirstChild("HumanoidRootPart")
-		if root and root:IsA("BasePart") then
-			root.Touched:Connect(function(hit)
-				onTouched(root, hit)
-			end)
+		for _, desc in ipairs(child:GetDescendants()) do
+			if desc:IsA("BasePart") then
+				desc.Touched:Connect(function(hit)
+					onTouched(desc, hit)
+				end)
+			end
 		end
 	end
 end

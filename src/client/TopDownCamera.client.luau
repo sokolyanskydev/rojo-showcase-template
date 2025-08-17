@@ -7,6 +7,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local CAMERA_HEIGHT_DEFAULT = 85
+local MIN_HEIGHT = 70
+local MAX_HEIGHT = 140
 local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
 
@@ -25,7 +27,7 @@ local zoomValue: NumberValue = (function()
     if existing and existing:IsA("NumberValue") then return existing end
     local nv = Instance.new("NumberValue")
     nv.Name = "CameraHeight"
-    nv.Value = math.clamp(CAMERA_HEIGHT_DEFAULT, 50, 140)
+    nv.Value = math.clamp(CAMERA_HEIGHT_DEFAULT, MIN_HEIGHT, MAX_HEIGHT)
     nv.Parent = ReplicatedStorage
     return nv
 end)()
@@ -45,13 +47,13 @@ Logger.info("Camera:Initialized", { height = zoomValue.Value })
 UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
     if processed then return end
     if input.KeyCode == Enum.KeyCode.Equals or input.KeyCode == Enum.KeyCode.Plus or input.KeyCode == Enum.KeyCode.KeypadPlus then
-        local next = math.clamp(zoomValue.Value - 10, 50, 140)
+        local next = math.clamp(zoomValue.Value - 10, MIN_HEIGHT, MAX_HEIGHT)
         if next ~= zoomValue.Value then
             zoomValue.Value = next
         end
         ZoomAction:FireServer("HotkeyPlus", next)
     elseif input.KeyCode == Enum.KeyCode.Minus or input.KeyCode == Enum.KeyCode.KeypadMinus then
-        local next = math.clamp(zoomValue.Value + 10, 50, 140)
+        local next = math.clamp(zoomValue.Value + 10, MIN_HEIGHT, MAX_HEIGHT)
         if next ~= zoomValue.Value then
             zoomValue.Value = next
         end
