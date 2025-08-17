@@ -36,6 +36,7 @@ end
 ensureRemoteEvent("CastPuddle")
 ensureRemoteEvent("ClientLog")
 ensureRemoteEvent("ZoomAction")
+ensureRemoteEvent("RequestCastPuddle")
 
 -- Expose GameConfig and Types in ReplicatedStorage for shared requires
 -- Try to clone shared modules to ReplicatedStorage if not present

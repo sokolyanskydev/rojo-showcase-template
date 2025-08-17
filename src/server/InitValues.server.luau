@@ -8,4 +8,35 @@ local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 Logger.info("Init:ValuesReady")
 
+-- Initialize player mana and regen
+local Players = game:GetService("Players")
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+
+local function setupPlayer(player: Player)
+    local folder = Instance.new("Folder")
+    folder.Name = "Stats"
+    folder.Parent = player
+
+    local mana = Instance.new("IntValue")
+    mana.Name = "Mana"
+    mana.Value = GameConfig.Mana.Max
+    mana.Parent = folder
+
+    -- Regen loop
+    task.spawn(function()
+        while player.Parent do
+            task.wait(1)
+            if mana.Parent == nil then break end
+            mana.Value = math.min(GameConfig.Mana.Max, mana.Value + GameConfig.Mana.RegenPerSecond)
+        end
+    end)
+end
+
+Players.PlayerAdded:Connect(function(player)
+    setupPlayer(player)
+end)
+for _, p in ipairs(Players:GetPlayers()) do
+    setupPlayer(p)
+end
+
 

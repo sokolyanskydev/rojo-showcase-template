@@ -10,8 +10,72 @@ local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local RemotesFolder = ReplicatedStorage:WaitForChild("Remotes")
 local CastPuddle: RemoteEvent = RemotesFolder:WaitForChild("CastPuddle") :: any
+local RequestCastPuddle: RemoteEvent = RemotesFolder:WaitForChild("RequestCastPuddle") :: any
 
 local activePuddles = {}
+local pickupsFolder = workspace:FindFirstChild("Pickups") or (function()
+    local f = Instance.new("Folder")
+    f.Name = "Pickups"
+    f.Parent = workspace
+    return f
+end)()
+
+local function spawnPickup(position: Vector3, kind: string)
+    local part = Instance.new("Part")
+    part.Anchored = true
+    part.CanCollide = false
+    part.Shape = Enum.PartType.Ball
+    part.Size = Vector3.new(1.2, 1.2, 1.2)
+    part.Position = position + Vector3.new(0, 1.25, 0)
+    part.Name = kind == "Mana" and "ManaOrb" or "HealthOrb"
+    part.Color = kind == "Mana" and Color3.fromRGB(80, 140, 255) or Color3.fromRGB(80, 220, 80)
+    part.Material = Enum.Material.Neon
+    part.Parent = pickupsFolder
+
+    -- Despawn after 30s
+    task.delay(30, function()
+        if part and part.Parent then part:Destroy() end
+    end)
+
+    -- Touch handler
+    part.Touched:Connect(function(hit)
+        local character = hit:FindFirstAncestorWhichIsA("Model")
+        if not character then return end
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if not humanoid then return end
+        local player = game.Players:GetPlayerFromCharacter(character)
+        if not player then return end
+        if kind == "Health" then
+            humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + 50)
+        else
+            local stats = player:FindFirstChild("Stats")
+            local mana = stats and stats:FindFirstChild("Mana")
+            if mana and mana:IsA("IntValue") then
+                local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+                mana.Value = math.min(GameConfig.Mana.Max, mana.Value + 50)
+            end
+        end
+        if part then part:Destroy() end
+    end)
+end
+
+-- Periodically spawn random pickups near any player
+task.spawn(function()
+    while true do
+        task.wait(10)
+        local players = Players:GetPlayers()
+        if #players == 0 then continue end
+        local any = players[math.random(1, #players)]
+        local character = any.Character
+        if not character then continue end
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if not hrp or not hrp:IsA("BasePart") then continue end
+        local base = hrp.Position
+        local offset = Vector3.new(math.random(-60, 60), 0, math.random(-60, 60))
+        local pos = base + offset
+        spawnPickup(pos, math.random() < 0.5 and "Health" or "Mana")
+    end
+end)
 
 local function createPuddle(caster: Player, position: Vector3)
 	local now = os.clock()
@@ -111,6 +175,26 @@ CastPuddle.OnServerEvent:Connect(function(player: Player, targetPos: Vector3)
 	local origin = hrp.Position
 	local clamped = clampToRange(origin, targetPos, GameConfig.Puddle.MaxCastRange)
 	createPuddle(player, clamped)
+end)
+
+-- Gate casting by mana
+RequestCastPuddle.OnServerEvent:Connect(function(player: Player, targetPos: Vector3)
+    local stats = player:FindFirstChild("Stats")
+    local mana = stats and stats:FindFirstChild("Mana")
+    local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+    if mana and mana:IsA("IntValue") and mana.Value >= GameConfig.Mana.PuddleCost then
+        mana.Value -= GameConfig.Mana.PuddleCost
+        -- replicate CastPuddle logic: clamp and create
+        local character = player.Character
+        if not character then return end
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if not hrp or not hrp:IsA("BasePart") then return end
+        local origin = hrp.Position
+        local clamped = clampToRange(origin, targetPos, GameConfig.Puddle.MaxCastRange)
+        createPuddle(player, clamped)
+    else
+        -- insufficient mana: optional feedback via client event/UI
+    end
 end)
 
 -- Damage/slow tick loop

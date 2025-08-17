@@ -7,11 +7,12 @@ local player = Players.LocalPlayer
 local zoomValue: NumberValue? = ReplicatedStorage:FindFirstChild("CameraHeight") :: any
 
 local function styleBillboard(bb: BillboardGui)
-    bb.Size = UDim2.new(0, 64, 0, 10)
-    bb.StudsOffset = Vector3.new(0, 2.2, 0)
     bb.AlwaysOnTop = true
-    -- Optional: scale with zoom to reduce clutter when zoomed out
-    local scale = math.clamp((100 - zoomValue.Value) / 60, 0.6, 1.0)
+    bb.StudsOffset = Vector3.new(0, 2.2, 0)
+    local scale = 1
+    if zoomValue and zoomValue:IsA("NumberValue") then
+        scale = math.clamp((100 - (zoomValue :: NumberValue).Value) / 60, 0.6, 1.0)
+    end
     bb.Size = UDim2.new(0, math.floor(64 * scale + 0.5), 0, math.floor(10 * scale + 0.5))
 end
 
@@ -33,7 +34,12 @@ local function ensureBillboardFor(model: Model)
         barFrame.Name = "HPBar"
         barFrame.Size = UDim2.new(1, 0, 1, 0)
         barFrame.Position = UDim2.new(0, 0, 0, 0)
-        barFrame.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+        -- Color bar by enemy type
+        if model.Name == "EnemyElite" then
+            barFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 80)
+        else
+            barFrame.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+        end
         barFrame.BorderSizePixel = 0
         barFrame.Parent = bb
         local barCorner = Instance.new("UICorner")
@@ -43,7 +49,11 @@ local function ensureBillboardFor(model: Model)
         local fill = Instance.new("Frame")
         fill.Name = "Fill"
         fill.Size = UDim2.new(1, 0, 1, 0)
-        fill.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
+        if model.Name == "EnemyElite" then
+            fill.BackgroundColor3 = Color3.fromRGB(120, 160, 255)
+        else
+            fill.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
+        end
         fill.BorderSizePixel = 0
         fill.Parent = barFrame
         local fillCorner = Instance.new("UICorner")
@@ -79,7 +89,7 @@ local function ensureBillboardFor(model: Model)
 end
 
 workspace.ChildAdded:Connect(function(child)
-    if child:IsA("Model") and child.Name == "Enemy" then
+    if child:IsA("Model") and (child.Name == "Enemy" or child.Name == "EnemyElite") then
         task.defer(function()
             ensureBillboardFor(child)
         end)
@@ -87,7 +97,7 @@ workspace.ChildAdded:Connect(function(child)
 end)
 
 for _, child in ipairs(workspace:GetChildren()) do
-    if child:IsA("Model") and child.Name == "Enemy" then
+    if child:IsA("Model") and (child.Name == "Enemy" or child.Name == "EnemyElite") then
         ensureBillboardFor(child)
     end
 end

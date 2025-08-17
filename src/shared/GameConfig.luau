@@ -20,6 +20,11 @@ export type GameConfig = {
 	Puddle: PuddleConfig,
 	Enemy: EnemyConfig,
 	CastCooldownSeconds: number,
+	Mana: {
+		Max: number,
+		RegenPerSecond: number,
+		PuddleCost: number,
+	},
 }
 
 local config: GameConfig = {
@@ -38,6 +43,11 @@ local config: GameConfig = {
 		WalkSpeed = 12,
 	},
 	CastCooldownSeconds = 3,
+	Mana = {
+		Max = 100,
+		RegenPerSecond = 5,
+		PuddleCost = 20,
+	},
 }
 
 return config

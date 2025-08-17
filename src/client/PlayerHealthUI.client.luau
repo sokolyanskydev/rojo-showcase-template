@@ -45,6 +45,42 @@ label.TextSize = 14
 label.Font = Enum.Font.GothamMedium
 label.Parent = frame
 
+-- Mana bar under HP
+local manaFrame = Instance.new("Frame")
+manaFrame.Name = "ManaBar"
+manaFrame.Size = UDim2.new(0.25, 0, 0, 12)
+manaFrame.Position = UDim2.new(0.02, 0, 0.02, 18)
+manaFrame.BackgroundColor3 = Color3.fromRGB(30, 40, 80)
+manaFrame.BorderSizePixel = 0
+manaFrame.Parent = gui
+local manaCorner = Instance.new("UICorner")
+manaCorner.CornerRadius = UDim.new(0, 6)
+manaCorner.Parent = manaFrame
+
+local manaFill = Instance.new("Frame")
+manaFill.Name = "Fill"
+manaFill.Size = UDim2.new(1, 0, 1, 0)
+manaFill.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+manaFill.BorderSizePixel = 0
+manaFill.Parent = manaFrame
+local manaFillCorner = Instance.new("UICorner")
+manaFillCorner.CornerRadius = UDim.new(0, 6)
+manaFillCorner.Parent = manaFill
+local manaStroke = Instance.new("UIStroke")
+manaStroke.Color = Color3.fromRGB(15, 20, 40)
+manaStroke.Thickness = 1
+manaStroke.Parent = manaFrame
+
+local manaLabel = Instance.new("TextLabel")
+manaLabel.Name = "Text"
+manaLabel.Size = UDim2.new(1, 0, 1, 0)
+manaLabel.BackgroundTransparency = 1
+manaLabel.Text = ""
+manaLabel.TextColor3 = Color3.new(1,1,1)
+manaLabel.TextSize = 12
+manaLabel.Font = Enum.Font.GothamMedium
+manaLabel.Parent = manaFrame
+
 local function hookHumanoid()
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoid = character:WaitForChild("Humanoid")
@@ -64,9 +100,27 @@ local function hookHumanoid()
     Logger.info("Player:HealthHooked")
 end
 
+-- Mana hook
+local function hookMana()
+    local statsFolder = player:WaitForChild("Stats", 5)
+    if not statsFolder then return end
+    local mana: IntValue? = statsFolder:FindFirstChild("Mana") :: any
+    if not mana or not mana:IsA("IntValue") then return end
+    local function updateMana()
+        local max = require(ReplicatedStorage:WaitForChild("GameConfig")).Mana.Max
+        local ratio = math.clamp(mana.Value / max, 0, 1)
+        manaFill.Size = UDim2.new(ratio, 0, 1, 0)
+        manaLabel.Text = string.format("MP: %d / %d", mana.Value, max)
+    end
+    mana:GetPropertyChangedSignal("Value"):Connect(updateMana)
+    updateMana()
+end
+
 hookHumanoid()
+hookMana()
 player.CharacterAdded:Connect(function()
     hookHumanoid()
+    task.defer(hookMana)
 end)
 
 

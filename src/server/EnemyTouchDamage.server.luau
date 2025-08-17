@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
-local DAMAGE_PER_SECOND = 1
+local DAMAGE_PER_SECOND = 2
 local TICK_SECONDS = 0.5
 local PROXIMITY_RADIUS = 4 -- studs around the enemy where player also takes damage
 -- Track active loops per humanoid per enemy model (weak maps to avoid leaks)
@@ -84,7 +84,11 @@ local function onTouched(enemyPart: BasePart, other: BasePart)
 			if touching then
 				timeWithoutContact = 0
 				humanoid:SetAttribute("LastDamageCause", "EnemyTouch")
-				humanoid:TakeDamage(DAMAGE_PER_SECOND * TICK_SECONDS)
+				local dps = DAMAGE_PER_SECOND
+				if enemyModel.Name == "EnemyElite" then
+					dps = dps * 2
+				end
+				humanoid:TakeDamage(dps * TICK_SECONDS)
 			else
 				timeWithoutContact += TICK_SECONDS
 				if timeWithoutContact >= 1 then
@@ -102,7 +106,7 @@ local function onTouched(enemyPart: BasePart, other: BasePart)
 end
 
 workspace.ChildAdded:Connect(function(child)
-	if child:IsA("Model") and child.Name == "Enemy" then
+	if child:IsA("Model") and (child.Name == "Enemy" or child.Name == "EnemyElite") then
 		for _, desc in ipairs(child:GetDescendants()) do
 			if desc:IsA("BasePart") then
 				desc.Touched:Connect(function(hit)
@@ -114,7 +118,7 @@ workspace.ChildAdded:Connect(function(child)
 end)
 
 for _, child in ipairs(workspace:GetChildren()) do
-	if child:IsA("Model") and child.Name == "Enemy" then
+	if child:IsA("Model") and (child.Name == "Enemy" or child.Name == "EnemyElite") then
 		for _, desc in ipairs(child:GetDescendants()) do
 			if desc:IsA("BasePart") then
 				desc.Touched:Connect(function(hit)

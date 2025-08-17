@@ -13,6 +13,7 @@ local mouse = player:GetMouse()
 
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local CastPuddle: RemoteEvent = Remotes:WaitForChild("CastPuddle") :: any
+local RequestCastPuddle: RemoteEvent = Remotes:WaitForChild("RequestCastPuddle") :: any
 
 local canCast = true
 local screenGui: ScreenGui? = nil
@@ -35,7 +36,7 @@ local function requestCast(position: Vector3)
 			end
 		end
 	end
-	CastPuddle:FireServer(position)
+	RequestCastPuddle:FireServer(position)
 	Logger.info("Puddle:Cast", { position = tostring(position) })
 	task.delay(GameConfig.CastCooldownSeconds, function()
 		canCast = true

@@ -6,9 +6,9 @@ local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
 
-local function createEnemy(spawnPosition: Vector3): Model
+local function createEnemy(spawnPosition: Vector3, isElite: boolean): Model
 	local model = Instance.new("Model")
-	model.Name = "Enemy"
+	model.Name = isElite and "EnemyElite" or "Enemy"
 
 	local hrp = Instance.new("Part")
 	hrp.Name = "HumanoidRootPart"
@@ -24,7 +24,7 @@ local function createEnemy(spawnPosition: Vector3): Model
 	head.Shape = Enum.PartType.Ball
 	head.Size = Vector3.new(2, 2, 2)
 	head.Position = spawnPosition + Vector3.new(0, 2, 0)
-	head.Color = Color3.fromRGB(180, 70, 70)
+	head.Color = isElite and Color3.fromRGB(90, 40, 180) or Color3.fromRGB(180, 70, 70)
 	head.Parent = model
 
 	local weld = Instance.new("WeldConstraint")
@@ -34,9 +34,9 @@ local function createEnemy(spawnPosition: Vector3): Model
 
 	local humanoid = Instance.new("Humanoid")
 	humanoid.Name = "Humanoid"
-	humanoid.MaxHealth = GameConfig.Enemy.BaseHealth
-	humanoid.Health = GameConfig.Enemy.BaseHealth
-	humanoid.WalkSpeed = GameConfig.Enemy.WalkSpeed
+	humanoid.MaxHealth = (isElite and (GameConfig.Enemy.BaseHealth * 2) or GameConfig.Enemy.BaseHealth)
+	humanoid.Health = humanoid.MaxHealth
+	humanoid.WalkSpeed = (isElite and (GameConfig.Enemy.WalkSpeed * 1.15) or GameConfig.Enemy.WalkSpeed)
 	-- Hide default overhead UI; custom Billboard handles display
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
@@ -60,9 +60,12 @@ local function getAnyPlayerPosition(): Vector3?
 	return nil
 end
 
+local startTime = os.clock()
 task.spawn(function()
 	while true do
-		task.wait(GameConfig.Enemy.SpawnIntervalSeconds)
+		local elapsed = os.clock() - startTime
+		local interval = math.max(0.5, GameConfig.Enemy.SpawnIntervalSeconds - math.floor(elapsed / 30) * 0.2)
+		task.wait(interval)
 		local targetPos = getAnyPlayerPosition()
 		if not targetPos then
 			continue
@@ -70,7 +73,7 @@ task.spawn(function()
 		local angle = math.random() * math.pi * 2
 		local r = GameConfig.Enemy.SpawnRadius
 		local spawnPos = Vector3.new(targetPos.X + math.cos(angle) * r, 5, targetPos.Z + math.sin(angle) * r)
-		local enemy = createEnemy(spawnPos)
+		local enemy = createEnemy(spawnPos, math.random() < 0.25)
 		-- Basic follow behavior
 		task.spawn(function()
 			while enemy.Parent do
