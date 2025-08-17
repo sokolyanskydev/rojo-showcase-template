@@ -4,11 +4,8 @@ local Workspace = game:GetService("Workspace")
 
 local function ensureFloor(): ()
 	local existing = Workspace:FindFirstChild("Baseplate")
-	if existing and existing:IsA("BasePart") then
-		return
-	end
+	local floor = if existing and existing:IsA("BasePart") then existing else Instance.new("Part")
 
-	local floor = Instance.new("Part")
 	floor.Name = "Baseplate"
 	floor.Anchored = true
 	floor.Locked = true
@@ -21,12 +18,7 @@ local function ensureFloor(): ()
 end
 
 local function ensureSpawn(): ()
-	local existingSpawn = Workspace:FindFirstChildOfClass("SpawnLocation")
-	if existingSpawn then
-		return
-	end
-
-	local spawn = Instance.new("SpawnLocation")
+	local spawn = Workspace:FindFirstChildOfClass("SpawnLocation") or Instance.new("SpawnLocation")
 	spawn.Name = "SpawnLocation"
 	spawn.Anchored = true
 	spawn.CanCollide = true

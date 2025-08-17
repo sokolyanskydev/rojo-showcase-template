@@ -10,9 +10,17 @@
 local SocialService = game:GetService("SocialService")
 local TeleportService = game:GetService("TeleportService")
 
-SocialService.OnCallInviteInvoked = function(): any
-	local placeId: number = game.PlaceId -- This is the place ID of the desired place to drop call participants into
-	local accessCode: string = TeleportService:ReserveServer(placeId)
+local ok = pcall(function()
+	local _ = (SocialService :: any).OnCallInviteInvoked
+end)
 
-	return { ReservedServerAccessCode = accessCode, PlaceId = placeId }
+if ok then
+	(SocialService :: any).OnCallInviteInvoked = function(): any
+		local placeId: number = game.PlaceId
+		local accessCode: string = TeleportService:ReserveServer(placeId)
+
+		return { ReservedServerAccessCode = accessCode, PlaceId = placeId }
+	end
+else
+	warn("SocialService.OnCallInviteInvoked is not available in this environment; skipping handler setup.")
 end
