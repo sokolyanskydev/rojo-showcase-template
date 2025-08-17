@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
 
 local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local RemotesFolder = ReplicatedStorage:WaitForChild("Remotes")
 local CastPuddle: RemoteEvent = RemotesFolder:WaitForChild("CastPuddle") :: any
@@ -137,8 +138,9 @@ RunService.Heartbeat:Connect(function()
 						humanoid:SetAttribute(baseWalkSpeedAttr, humanoid.WalkSpeed)
 					end
 					humanoid.WalkSpeed = (humanoid:GetAttribute(baseWalkSpeedAttr) :: number) * GameConfig.Puddle.SlowMultiplier
-					-- tag last damager for kill credit
+					-- tag last damager for kill credit + cause
 					humanoid:SetAttribute("LastDamagedByUserId", record.Caster and record.Caster.UserId or -1)
+					humanoid:SetAttribute("LastDamageCause", "Puddle")
 					humanoid:TakeDamage(GameConfig.Puddle.DamagePerSecond * GameConfig.Puddle.TickSeconds)
 				else
 					-- Restore speed if previously slowed

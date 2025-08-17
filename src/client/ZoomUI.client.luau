@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 local zoomValue: NumberValue = ReplicatedStorage:WaitForChild("CameraHeight") :: any
+local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "ZoomUI"
@@ -29,17 +30,29 @@ end
 local minus = createButton("ZoomOut", "-", 16)
 local plus = createButton("ZoomIn", "+", 68)
 
-local MIN_ZOOM = 50
+local MIN_ZOOM = 70
 local MAX_ZOOM = 140
 local STEP = 10
 
 minus.MouseButton1Click:Connect(function()
-    zoomValue.Value = math.clamp(zoomValue.Value + STEP, MIN_ZOOM, MAX_ZOOM)
+    local prev = zoomValue.Value
+    local next = math.clamp(zoomValue.Value + STEP, MIN_ZOOM, MAX_ZOOM)
+    zoomValue.Value = next
+    if next == prev then
+        Logger.info("Zoom:AtMax", { value = next })
+    end
 end)
 
 plus.MouseButton1Click:Connect(function()
-    zoomValue.Value = math.clamp(zoomValue.Value - STEP, MIN_ZOOM, MAX_ZOOM)
+    local prev = zoomValue.Value
+    local next = math.clamp(zoomValue.Value - STEP, MIN_ZOOM, MAX_ZOOM)
+    zoomValue.Value = next
+    if next == prev then
+        Logger.info("Zoom:AtMin", { value = next })
+    end
 end)
+
+-- keep console quieter: do not log every value change
 
 
 

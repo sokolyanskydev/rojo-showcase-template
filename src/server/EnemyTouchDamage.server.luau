@@ -1,6 +1,8 @@
 --!strict
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local DAMAGE_PER_SECOND = 1
 
@@ -22,6 +24,7 @@ local function onTouched(enemyRoot: BasePart, other: BasePart)
 	local alive = true
 	task.spawn(function()
 		while alive and enemyRoot.Parent and humanoid.Parent do
+			humanoid:SetAttribute("LastDamageCause", "EnemyTouch")
 			humanoid:TakeDamage(DAMAGE_PER_SECOND)
 			task.wait(1)
 		end
@@ -30,6 +33,7 @@ local function onTouched(enemyRoot: BasePart, other: BasePart)
 	local conn1, conn2, conn3
 	conn1 = humanoid.Died:Connect(function()
 		alive = false
+		Logger.info("Player:Died", { player = player.Name, cause = "EnemyTouch", enemy = enemyRoot:GetFullName() })
 		if conn1 then conn1:Disconnect() end
 		if conn2 then conn2:Disconnect() end
 		if conn3 then conn3:Disconnect() end
@@ -47,6 +51,7 @@ local function onTouched(enemyRoot: BasePart, other: BasePart)
 			if conn2 then conn2:Disconnect() end
 			if conn3 then conn3:Disconnect() end
 			humanoid:SetAttribute(key, nil)
+			Logger.info("Enemy:TouchEnded", { enemy = enemyRoot:GetFullName(), player = player.Name })
 		end
 	end)
 end

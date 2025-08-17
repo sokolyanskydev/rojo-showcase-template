@@ -1,6 +1,8 @@
 --!strict
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local player = Players.LocalPlayer
 local gui = Instance.new("ScreenGui")
@@ -59,6 +61,7 @@ local function hookHumanoid()
     humanoid.HealthChanged:Connect(update)
     humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(update)
     update()
+    Logger.info("Player:HealthHooked")
 end
 
 hookHumanoid()

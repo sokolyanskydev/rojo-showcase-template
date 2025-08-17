@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
@@ -35,6 +36,7 @@ local function requestCast(position: Vector3)
 		end
 	end
 	CastPuddle:FireServer(position)
+	Logger.info("Puddle:Cast", { position = tostring(position) })
 	task.delay(GameConfig.CastCooldownSeconds, function()
 		canCast = true
 		if screenGui then

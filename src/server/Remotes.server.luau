@@ -2,6 +2,13 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local function ensureModule(name: string, moduleSource: ModuleScript)
+	if ReplicatedStorage:FindFirstChild(name) == nil then
+		moduleSource.Name = name
+		moduleSource:Clone().Parent = ReplicatedStorage
+	end
+end
+
 local function ensureFolder(parent: Instance, name: string): Folder
 	local f = parent:FindFirstChild(name)
 	if f and f:IsA("Folder") then
@@ -28,15 +35,9 @@ end
 
 ensureRemoteEvent("CastPuddle")
 ensureRemoteEvent("ClientLog")
+ensureRemoteEvent("ZoomAction")
 
 -- Expose GameConfig and Types in ReplicatedStorage for shared requires
-local function ensureModule(name: string, moduleSource: ModuleScript)
-	if ReplicatedStorage:FindFirstChild(name) == nil then
-		moduleSource.Name = name
-		moduleSource:Clone().Parent = ReplicatedStorage
-	end
-end
-
 -- Try to clone shared modules to ReplicatedStorage if not present
 local sharedFolder = script.Parent.Parent:FindFirstChild("shared")
 if sharedFolder then
@@ -50,6 +51,12 @@ if sharedFolder then
 	if types and types:IsA("ModuleScript") then
 		if not ReplicatedStorage:FindFirstChild("Types") then
 			types:Clone().Parent = ReplicatedStorage
+		end
+	end
+	local logger = sharedFolder:FindFirstChild("Logger")
+	if logger and logger:IsA("ModuleScript") then
+		if not ReplicatedStorage:FindFirstChild("Logger") then
+			logger:Clone().Parent = ReplicatedStorage
 		end
 	end
 end

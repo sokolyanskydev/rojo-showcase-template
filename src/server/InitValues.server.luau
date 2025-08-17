@@ -1,6 +1,8 @@
 --!strict
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
+local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 if not ReplicatedStorage:FindFirstChild("CameraHeight") then
 	local nv = Instance.new("NumberValue")
@@ -10,5 +12,7 @@ if not ReplicatedStorage:FindFirstChild("CameraHeight") then
 end
 
 -- LockCenter removed; free movement with WASD
+
+Logger.info("Init:ValuesReady")
 
 

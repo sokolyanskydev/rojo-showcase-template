@@ -2,6 +2,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
 
@@ -97,6 +98,7 @@ task.spawn(function()
 									local kills = stats:FindFirstChild("Kills")
 									if kills and kills:IsA("IntValue") then
 										kills.Value += 1
+										-- optional: could log kill credited
 									end
 								end
 							end
