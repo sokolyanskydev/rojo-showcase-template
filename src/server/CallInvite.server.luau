@@ -22,5 +22,6 @@ if ok then
 		return { ReservedServerAccessCode = accessCode, PlaceId = placeId }
 	end
 else
-	warn("SocialService.OnCallInviteInvoked is not available in this environment; skipping handler setup.")
+--	Silence in Studio to avoid noise
+--	print("SocialService.OnCallInviteInvoked is not available in this environment; skipping handler setup.")
 end

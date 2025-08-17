@@ -1,0 +1,151 @@
+--!strict
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CollectionService = game:GetService("CollectionService")
+
+local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
+
+local RemotesFolder = ReplicatedStorage:WaitForChild("Remotes")
+local CastPuddle: RemoteEvent = RemotesFolder:WaitForChild("CastPuddle") :: any
+
+local activePuddles = {}
+
+local function createPuddle(caster: Player, position: Vector3)
+	local now = os.clock()
+	local expires = now + GameConfig.Puddle.DurationSeconds
+
+	-- Raycast to ground for proper Y placement
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Exclude
+	rayParams.FilterDescendantsInstances = { caster.Character or nil }
+	local origin = position + Vector3.new(0, 100, 0)
+	local result = workspace:Raycast(origin, Vector3.new(0, -500, 0), rayParams)
+	local groundY = if result then result.Position.Y else 0
+
+	local part = Instance.new("Part")
+	part.Name = "Puddle"
+	part.Anchored = true
+	part.CanCollide = false
+	part.Transparency = 0.35
+	part.Material = Enum.Material.SmoothPlastic
+	part.Color = Color3.fromRGB(40, 80, 40)
+	part.Shape = Enum.PartType.Cylinder
+	part.Size = Vector3.new(0.2, GameConfig.Puddle.Radius * 2, GameConfig.Puddle.Radius * 2)
+	part.CFrame = CFrame.new(Vector3.new(position.X, groundY + 0.1, position.Z)) * CFrame.Angles(0, 0, math.rad(90))
+	part.Parent = workspace
+	CollectionService:AddTag(part, "Puddle")
+
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Rate = 30
+	emitter.Lifetime = NumberRange.new(0.5, 1.2)
+	emitter.Speed = NumberRange.new(0.2, 0.6)
+	emitter.SpreadAngle = Vector2.new(180, 180)
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1.5),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	emitter.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.35),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	emitter.Color = ColorSequence.new(Color3.fromRGB(60, 160, 60))
+	emitter.Texture = "rbxassetid://2418760062"
+	emitter.Parent = part
+
+	local steam = Instance.new("ParticleEmitter")
+	steam.Rate = 12
+	steam.Lifetime = NumberRange.new(0.8, 1.6)
+	steam.Speed = NumberRange.new(0.3, 0.8)
+	steam.RotSpeed = NumberRange.new(-10, 10)
+	steam.EmissionDirection = Enum.NormalId.Top
+	steam.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.6),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	steam.Color = ColorSequence.new(Color3.fromRGB(220, 255, 220))
+	steam.Texture = "rbxassetid://243660364"
+	steam.Parent = part
+
+	local record = {
+		Part = part,
+		Caster = caster,
+		ExpiresAt = expires,
+		LastTick = now,
+	}
+	activePuddles[part] = record
+
+	task.delay(GameConfig.Puddle.DurationSeconds, function()
+		if part and part.Parent then
+			activePuddles[part] = nil
+			part:Destroy()
+		end
+	end)
+end
+
+local function distanceXZ(a: Vector3, b: Vector3): number
+	local dx = a.X - b.X
+	local dz = a.Z - b.Z
+	return math.sqrt(dx * dx + dz * dz)
+end
+
+local function clampToRange(origin: Vector3, target: Vector3, maxRange: number): Vector3
+	local dir = Vector3.new(target.X - origin.X, 0, target.Z - origin.Z)
+	local mag = dir.Magnitude
+	if mag <= maxRange then
+		return Vector3.new(target.X, 0, target.Z)
+	end
+	local unit = if mag > 0 then dir / mag else Vector3.new(1, 0, 0)
+	local clamped = Vector3.new(origin.X, 0, origin.Z) + unit * maxRange
+	return clamped
+end
+
+CastPuddle.OnServerEvent:Connect(function(player: Player, targetPos: Vector3)
+	local character = player.Character
+	if not character then return end
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp or not hrp:IsA("BasePart") then return end
+
+	local origin = hrp.Position
+	local clamped = clampToRange(origin, targetPos, GameConfig.Puddle.MaxCastRange)
+	createPuddle(player, clamped)
+end)
+
+-- Damage/slow tick loop
+RunService.Heartbeat:Connect(function()
+	local now = os.clock()
+	for part, record in pairs(activePuddles) do
+		if now - record.LastTick < GameConfig.Puddle.TickSeconds then
+			continue
+		end
+		record.LastTick = now
+		-- Apply to NPCs and players inside the radius
+		for _, model in ipairs(workspace:GetChildren()) do
+			local humanoid = model:FindFirstChildOfClass("Humanoid")
+			local hrp = model:FindFirstChild("HumanoidRootPart")
+			if humanoid and hrp and hrp:IsA("BasePart") then
+				local inside = distanceXZ(hrp.Position, part.Position) <= GameConfig.Puddle.Radius
+				if inside then
+					-- Slow and damage
+					local baseWalkSpeedAttr = "_BaseWalkSpeed"
+					if humanoid:GetAttribute(baseWalkSpeedAttr) == nil then
+						humanoid:SetAttribute(baseWalkSpeedAttr, humanoid.WalkSpeed)
+					end
+					humanoid.WalkSpeed = (humanoid:GetAttribute(baseWalkSpeedAttr) :: number) * GameConfig.Puddle.SlowMultiplier
+					humanoid:TakeDamage(GameConfig.Puddle.DamagePerSecond * GameConfig.Puddle.TickSeconds)
+				else
+					-- Restore speed if previously slowed
+					local baseWalkSpeedAttr = "_BaseWalkSpeed"
+					local base = humanoid:GetAttribute(baseWalkSpeedAttr)
+					if base ~= nil then
+						humanoid.WalkSpeed = base :: number
+						humanoid:SetAttribute(baseWalkSpeedAttr, nil)
+					end
+				end
+			end
+		end
+	end
+end)
+
+
