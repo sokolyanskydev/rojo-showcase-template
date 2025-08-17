@@ -88,7 +88,7 @@ task.spawn(function()
 				end
 			end
 			-- cleanup corpse after short delay and award kill
-			task.delay(5, function()
+			task.delay(1, function()
 				if enemy and enemy.Parent then
 					local humanoid = enemy:FindFirstChildOfClass("Humanoid")
 					if humanoid then

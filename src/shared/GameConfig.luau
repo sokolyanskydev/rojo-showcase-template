@@ -29,7 +29,7 @@ export type GameConfig = {
 
 local config: GameConfig = {
 	Puddle = {
-		Radius = 24,
+		Radius = 12,
 		DurationSeconds = 8,
 		DamagePerSecond = 10,
 		SlowMultiplier = 0.4, -- 60% slow

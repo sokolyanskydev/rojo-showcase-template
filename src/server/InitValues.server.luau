@@ -27,12 +27,39 @@ local function setupPlayer(player: Player)
     coins.Value = 0
     coins.Parent = folder
 
+    -- Upgrades (levels)
+    local upgrades = Instance.new("Folder")
+    upgrades.Name = "Upgrades"
+    upgrades.Parent = folder
+    local function addUpgrade(name: string)
+        local v = Instance.new("IntValue")
+        v.Name = name
+        v.Value = 0
+        v.Parent = upgrades
+        return v
+    end
+    addUpgrade("ManaRegen")
+    addUpgrade("PuddleRadius")
+    addUpgrade("MaxHP")
+    addUpgrade("HPRegen")
+    addUpgrade("PuddleDamage")
+
     -- Regen loop
     task.spawn(function()
         while player.Parent do
             task.wait(1)
             if mana.Parent == nil then break end
-            mana.Value = math.min(GameConfig.Mana.Max, mana.Value + GameConfig.Mana.RegenPerSecond)
+            local regenLevel = upgrades:FindFirstChild("ManaRegen")
+            local bonus = if regenLevel and regenLevel:IsA("IntValue") then regenLevel.Value else 0
+            mana.Value = math.min(GameConfig.Mana.Max, mana.Value + GameConfig.Mana.RegenPerSecond + bonus)
+            -- Optional: simple HP regen upgrade
+            local character = player.Character
+            local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+            local hpUp = upgrades:FindFirstChild("HPRegen")
+            local hpBonus = if hpUp and hpUp:IsA("IntValue") then hpUp.Value else 0
+            if humanoid then
+                humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + hpBonus)
+            end
         end
     end)
 end

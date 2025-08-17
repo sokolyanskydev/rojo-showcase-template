@@ -248,7 +248,16 @@ RunService.Heartbeat:Connect(function()
 				if record.Caster and model == record.Caster.Character then
 					continue
 				end
-				local inside = distanceXZ(hrp.Position, part.Position) <= GameConfig.Puddle.Radius
+				local effectiveRadius = GameConfig.Puddle.Radius
+				if record.Caster then
+					local stats = record.Caster:FindFirstChild("Stats")
+					local upgrades = stats and stats:FindFirstChild("Upgrades")
+					local rUp = upgrades and upgrades:FindFirstChild("PuddleRadius")
+					if rUp and rUp:IsA("IntValue") then
+						effectiveRadius += 4 * rUp.Value
+					end
+				end
+				local inside = distanceXZ(hrp.Position, part.Position) <= effectiveRadius
 				if inside then
 					-- Slow and damage
 					local baseWalkSpeedAttr = "_BaseWalkSpeed"
@@ -259,7 +268,16 @@ RunService.Heartbeat:Connect(function()
 					-- tag last damager for kill credit + cause
 					humanoid:SetAttribute("LastDamagedByUserId", record.Caster and record.Caster.UserId or -1)
 					humanoid:SetAttribute("LastDamageCause", "Puddle")
-					humanoid:TakeDamage(GameConfig.Puddle.DamagePerSecond * GameConfig.Puddle.TickSeconds)
+					local dps = GameConfig.Puddle.DamagePerSecond
+					if record.Caster then
+						local stats = record.Caster:FindFirstChild("Stats")
+						local upgrades = stats and stats:FindFirstChild("Upgrades")
+						local dmgUp = upgrades and upgrades:FindFirstChild("PuddleDamage")
+						if dmgUp and dmgUp:IsA("IntValue") then
+							dps += 2 * dmgUp.Value
+						end
+					end
+					humanoid:TakeDamage(dps * GameConfig.Puddle.TickSeconds)
 				else
 					-- Restore speed if previously slowed
 					local baseWalkSpeedAttr = "_BaseWalkSpeed"
