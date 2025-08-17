@@ -1,5 +1,5 @@
 {
-  "name": "rojo-showcase",
+  "name": "rojo",
   "servePort": 34872,
   "tree": {
     "$className": "DataModel",
