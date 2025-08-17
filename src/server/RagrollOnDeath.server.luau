@@ -31,6 +31,7 @@ Players.PlayerAdded:Connect(function(player: Player): ()
 				end
 			end
 			local cause = humanoid:GetAttribute("LastDamageCause") or "Unknown"
+			-- Diagnostics: if cause is Unknown, gather extra info
 			local hrp = character:FindFirstChild("HumanoidRootPart")
 			if cause == "Unknown" and hrp and hrp:IsA("BasePart") then
 				if hrp.Position.Y < -100 then
@@ -39,6 +40,7 @@ Players.PlayerAdded:Connect(function(player: Player): ()
 					cause = "FallOrVoid"
 				end
 			end
+			-- Keep a clean log without zoom diagnostics
 			Logger.info("Player:Ragdoll", { player = player.Name, cause = cause })
 		end)
 	end)

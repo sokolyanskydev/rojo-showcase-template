@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
-local zoomValue: NumberValue = ReplicatedStorage:WaitForChild("CameraHeight") :: any
+local zoomValue: NumberValue? = ReplicatedStorage:FindFirstChild("CameraHeight") :: any
 
 local function styleBillboard(bb: BillboardGui)
     bb.Size = UDim2.new(0, 64, 0, 10)
@@ -69,10 +69,12 @@ local function ensureBillboardFor(model: Model)
 
     -- Visibility by zoom and restyle on change
     local function applyVisibilityAndStyle()
-        bb.Enabled = zoomValue.Value <= 90
+        bb.Enabled = true
         styleBillboard(bb)
     end
-    zoomValue.Changed:Connect(applyVisibilityAndStyle)
+    if zoomValue and zoomValue:IsA("NumberValue") then
+        zoomValue.Changed:Connect(applyVisibilityAndStyle)
+    end
     applyVisibilityAndStyle()
 end
 

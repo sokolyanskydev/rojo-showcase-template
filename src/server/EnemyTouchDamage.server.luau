@@ -6,6 +6,7 @@ local Logger = require(ReplicatedStorage:WaitForChild("Logger"))
 
 local DAMAGE_PER_SECOND = 1
 local TICK_SECONDS = 0.5
+local PROXIMITY_RADIUS = 4 -- studs around the enemy where player also takes damage
 -- Track active loops per humanoid per enemy model (weak maps to avoid leaks)
 local activeByHumanoid = setmetatable({}, { __mode = "k" })
 
@@ -60,10 +61,20 @@ local function onTouched(enemyPart: BasePart, other: BasePart)
 			local touching = false
 			for _, part in ipairs(enemyModel:GetDescendants()) do
 				if part:IsA("BasePart") then
-					for _, tp in ipairs((part :: BasePart):GetTouchingParts()) do
+					-- Contact or proximity check
+					local basePart = part :: BasePart
+					for _, tp in ipairs(basePart:GetTouchingParts()) do
 						if tp:IsDescendantOf(character) then
 							touching = true
 							break
+						end
+					end
+					if not touching then
+						local hrp = character:FindFirstChild("HumanoidRootPart")
+						if hrp and hrp:IsA("BasePart") then
+							if (hrp.Position - basePart.Position).Magnitude <= PROXIMITY_RADIUS then
+								touching = true
+							end
 						end
 					end
 					if touching then break end

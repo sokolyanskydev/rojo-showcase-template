@@ -15,4 +15,7 @@ zoomAction.OnServerEvent:Connect(function(player, action: string, value: number)
     print(string.format("[ZoomAction][%s] %s -> %s", player.Name, tostring(action), tostring(value)))
 end)
 
+-- Expose for other scripts (if needed)
+remotes:SetAttribute("__LastZoomStored", nil)
+
 
