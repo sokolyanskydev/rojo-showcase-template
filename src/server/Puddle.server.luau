@@ -125,6 +125,10 @@ RunService.Heartbeat:Connect(function()
 			local humanoid = model:FindFirstChildOfClass("Humanoid")
 			local hrp = model:FindFirstChild("HumanoidRootPart")
 			if humanoid and hrp and hrp:IsA("BasePart") then
+				-- exclude caster from being affected
+				if record.Caster and model == record.Caster.Character then
+					continue
+				end
 				local inside = distanceXZ(hrp.Position, part.Position) <= GameConfig.Puddle.Radius
 				if inside then
 					-- Slow and damage
@@ -133,6 +137,8 @@ RunService.Heartbeat:Connect(function()
 						humanoid:SetAttribute(baseWalkSpeedAttr, humanoid.WalkSpeed)
 					end
 					humanoid.WalkSpeed = (humanoid:GetAttribute(baseWalkSpeedAttr) :: number) * GameConfig.Puddle.SlowMultiplier
+					-- tag last damager for kill credit
+					humanoid:SetAttribute("LastDamagedByUserId", record.Caster and record.Caster.UserId or -1)
 					humanoid:TakeDamage(GameConfig.Puddle.DamagePerSecond * GameConfig.Puddle.TickSeconds)
 				else
 					-- Restore speed if previously slowed

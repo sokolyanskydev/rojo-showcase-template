@@ -82,9 +82,25 @@ task.spawn(function()
 					break
 				end
 			end
-			-- cleanup corpse after short delay
+			-- cleanup corpse after short delay and award kill
 			task.delay(5, function()
 				if enemy and enemy.Parent then
+					local humanoid = enemy:FindFirstChildOfClass("Humanoid")
+					if humanoid then
+						local killerUserId = humanoid:GetAttribute("LastDamagedByUserId")
+						if typeof(killerUserId) == "number" and killerUserId > 0 then
+							local killerPlayer = game.Players:GetPlayerByUserId(killerUserId)
+							if killerPlayer then
+								local stats = killerPlayer:FindFirstChild("leaderstats")
+								if stats then
+									local kills = stats:FindFirstChild("Kills")
+									if kills and kills:IsA("IntValue") then
+										kills.Value += 1
+									end
+								end
+							end
+						end
+					end
 					enemy:Destroy()
 				end
 			end)
