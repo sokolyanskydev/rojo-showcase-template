@@ -19,6 +19,21 @@ local screenGui: ScreenGui? = nil
 local function requestCast(position: Vector3)
 	if not canCast then return end
 	canCast = false
+	-- Clamp to max cast range from character
+	local character = player.Character
+	if character then
+		local hrp = character:FindFirstChild("HumanoidRootPart")
+		if hrp and hrp:IsA("BasePart") then
+			local flatOrigin = Vector3.new(hrp.Position.X, 0, hrp.Position.Z)
+			local flatTarget = Vector3.new(position.X, 0, position.Z)
+			local dir = flatTarget - flatOrigin
+			local maxR = GameConfig.Puddle.MaxCastRange
+			if dir.Magnitude > maxR then
+				local clamped = flatOrigin + dir.Unit * maxR
+				position = Vector3.new(clamped.X, position.Y, clamped.Z)
+			end
+		end
+	end
 	CastPuddle:FireServer(position)
 	task.delay(GameConfig.CastCooldownSeconds, function()
 		canCast = true

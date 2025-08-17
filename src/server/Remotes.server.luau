@@ -27,6 +27,7 @@ local function ensureRemoteEvent(name: string): RemoteEvent
 end
 
 ensureRemoteEvent("CastPuddle")
+ensureRemoteEvent("ClientLog")
 
 -- Expose GameConfig and Types in ReplicatedStorage for shared requires
 local function ensureModule(name: string, moduleSource: ModuleScript)

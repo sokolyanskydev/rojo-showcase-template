@@ -36,8 +36,9 @@ local function createEnemy(spawnPosition: Vector3): Model
 	humanoid.MaxHealth = GameConfig.Enemy.BaseHealth
 	humanoid.Health = GameConfig.Enemy.BaseHealth
 	humanoid.WalkSpeed = GameConfig.Enemy.WalkSpeed
-	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Subject
-	humanoid.DisplayName = "Enemy"
+	-- Hide default overhead UI; custom Billboard handles display
+	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
 	humanoid.Parent = model
 
 	model.PrimaryPart = hrp
