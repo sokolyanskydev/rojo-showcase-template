@@ -18,7 +18,7 @@ local function getBoundsFrame()
     default.Anchored = true
     default.CanCollide = false
     default.Transparency = 0.9
-    default.Size = Vector3.new(300, 1, 300)
+    default.Size = Vector3.new(450, 1, 450)
     default.Position = Vector3.new(0, 0.5, 0)
     default.Parent = workspace
     return default.CFrame, default.Size
