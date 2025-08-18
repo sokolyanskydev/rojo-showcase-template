@@ -16,8 +16,8 @@ gui.Parent = player:WaitForChild("PlayerGui")
 gui.Enabled = false
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 240, 0, 300)
-frame.Position = UDim2.new(1, -260, 1, -320)
+frame.Size = UDim2.new(0, 320, 0, 240)
+frame.Position = UDim2.new(1, -340, 1, -260)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 frame.BackgroundTransparency = 0.15
 frame.Parent = gui
@@ -37,22 +37,22 @@ title.Parent = frame
 
 local items = {
     -- Puddle column (left)
-    { key = "ManaRegen", text = "+1 MP/s", pos = UDim2.new(0, 6, 0, 26) },
-    { key = "PuddleRadius", text = "+4 puddle radius", pos = UDim2.new(0, 6, 0, 56) },
-    { key = "MaxHP", text = "+10 Max HP", pos = UDim2.new(0, 6, 0, 86) },
-    { key = "HPRegen", text = "+1 HP/s", pos = UDim2.new(0, 6, 0, 116) },
-    { key = "PuddleDamage", text = "+2 puddle DPS", pos = UDim2.new(0, 6, 0, 146) },
-    { key = "PuddleCooldown", text = "-0.2s puddle CD", pos = UDim2.new(0, 6, 0, 176) },
+    { key = "ManaRegen", text = "+1 MP/s", pos = UDim2.new(0, 8, 0, 26) },
+    { key = "PuddleRadius", text = "+4 puddle radius", pos = UDim2.new(0, 8, 0, 56) },
+    { key = "MaxHP", text = "+10 Max HP", pos = UDim2.new(0, 8, 0, 86) },
+    { key = "HPRegen", text = "+1 HP/s", pos = UDim2.new(0, 8, 0, 116) },
+    { key = "PuddleDamage", text = "+2 puddle DPS", pos = UDim2.new(0, 8, 0, 146) },
+    { key = "PuddleCooldown", text = "-0.2s puddle CD", pos = UDim2.new(0, 8, 0, 176) },
     -- Melee column (right)
-    { key = "MeleeSplash", text = "+1 melee splash", pos = UDim2.new(0, 126, 0, 26) },
-    { key = "MeleeDamage", text = "+4 melee dmg", pos = UDim2.new(0, 126, 0, 56) },
-    { key = "MeleeSpeed", text = "+1 melee speed", pos = UDim2.new(0, 126, 0, 86) },
-    { key = "MeleeKnockback", text = "+5 melee knockback", pos = UDim2.new(0, 126, 0, 116) },
+    { key = "MeleeSplash", text = "+1 melee splash", pos = UDim2.new(0, 164, 0, 26) },
+    { key = "MeleeDamage", text = "+4 melee dmg", pos = UDim2.new(0, 164, 0, 56) },
+    { key = "MeleeSpeed", text = "+1 melee speed", pos = UDim2.new(0, 164, 0, 86) },
+    { key = "MeleeKnockback", text = "+5 melee knockback", pos = UDim2.new(0, 164, 0, 116) },
 }
 
 local function makeButton(item)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 108, 0, 24)
+    btn.Size = UDim2.new(0, 148, 0, 24)
     btn.Position = item.pos
     btn.Text = item.text
     btn.Name = item.key

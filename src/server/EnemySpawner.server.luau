@@ -61,6 +61,7 @@ local function getAnyPlayerPosition(): Vector3?
 end
 
 local startTime = os.clock()
+local killsSinceBoss = 0
 task.spawn(function()
 	while true do
 		local elapsed = os.clock() - startTime
@@ -122,6 +123,12 @@ task.spawn(function()
 											if coins and coins:IsA("IntValue") then
 												coins.Value += (enemy.Name == "EnemyElite" and 25 or 10)
 											end
+										end
+										killsSinceBoss += 1
+										if killsSinceBoss >= 100 then
+											killsSinceBoss = 0
+											local Boss = require(ReplicatedStorage:WaitForChild("Boss"))
+											Boss.MaybeSpawnBoss(killerPlayer)
 										end
 									end
 								end
