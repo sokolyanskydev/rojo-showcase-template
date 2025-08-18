@@ -18,9 +18,23 @@ local RequestCastPuddle: RemoteEvent = Remotes:WaitForChild("RequestCastPuddle")
 local canCast = true
 local screenGui: ScreenGui? = nil
 
+-- Optional link to weapon selector
+local Weapons: any = nil
+pcall(function()
+	local m = player:WaitForChild("PlayerGui"):FindFirstChild("WeaponsUI")
+	-- We can't require UI; instead try requiring the client module by known path
+	local weaponsModule = script.Parent:FindFirstChild("Weapons")
+	if weaponsModule then
+		Weapons = require(weaponsModule)
+	end
+end)
+
+local lastCastAt = 0
+
 local function requestCast(position: Vector3)
 	if not canCast then return end
 	canCast = false
+	lastCastAt = os.clock()
 	-- Clamp to max cast range from character
 	local character = player.Character
 	if character then
@@ -40,19 +54,16 @@ local function requestCast(position: Vector3)
 	Logger.info("Puddle:Cast", { position = tostring(position) })
 	task.delay(GameConfig.CastCooldownSeconds, function()
 		canCast = true
-		if screenGui then
-			local label = screenGui:FindFirstChild("Cooldown")
-			if label and label:IsA("TextLabel") then
-				label.Text = "Готово: лкм — лужа"
-			end
-		end
 	end)
 end
 
--- Left mouse click to cast at mouse hit on world
+-- Left mouse click to cast at mouse hit on world (only when Puddle is selected)
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed then return end
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		local currentAttr = player:GetAttribute("CurrentWeapon")
+		local current = tostring(currentAttr or (Weapons and Weapons.getCurrent and Weapons.getCurrent()) or "Puddle")
+		if current ~= "Puddle" then return end
 		local target = mouse.Hit
 		if target then
 			requestCast(target.Position)
@@ -71,31 +82,45 @@ task.defer(function()
 
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
-	title.Size = UDim2.new(1, 0, 0, 36)
+	title.Size = UDim2.new(1, 0, 0, 24)
 	title.Position = UDim2.new(0, 0, 0, 0)
 	title.BackgroundTransparency = 1
-	title.Text = "О ШИКАРНЫЙ СУП НАВАРИЛИ"
+	title.Text = "Лужа"
 	title.TextColor3 = Color3.new(1, 1, 1)
 	title.Font = Enum.Font.GothamBold
-	title.TextSize = 28
+	title.TextSize = 20
+	title.Visible = false
 	title.Parent = gui
 
 	local cd = Instance.new("TextLabel")
 	cd.Name = "Cooldown"
-	cd.Size = UDim2.new(1, 0, 0, 28)
-	cd.Position = UDim2.new(0, 0, 0, 36)
+	cd.Size = UDim2.new(1, 0, 0, 20)
+	cd.Position = UDim2.new(0, 0, 0, 22)
 	cd.BackgroundTransparency = 1
-	cd.Text = "Готово: лкм — лужа"
+	cd.Text = "Готово"
 	cd.TextColor3 = Color3.new(1, 1, 1)
 	cd.Font = Enum.Font.Gotham
-	cd.TextSize = 22
+	cd.TextSize = 16
+	cd.Visible = false
 	cd.Parent = gui
 
-	RunService.RenderStepped:Connect(function()
+	local function updateUI()
+		local weapon = tostring(player:GetAttribute("CurrentWeapon") or "Puddle")
+		local show = weapon == "Puddle"
+		title.Visible = show
+		cd.Visible = show
+		if not show then return end
 		if not canCast then
-			cd.Text = "КД..."
+			local elapsed = os.clock() - lastCastAt
+			local remain = math.max(0, GameConfig.CastCooldownSeconds - elapsed)
+			cd.Text = string.format("КД: %.1fs", remain)
+		else
+			cd.Text = "Готово"
 		end
-	end)
+	end
+
+	RunService.RenderStepped:Connect(updateUI)
+	player:GetAttributeChangedSignal("CurrentWeapon"):Connect(updateUI)
 end)
 
 

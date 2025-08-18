@@ -73,6 +73,20 @@ task.spawn(function()
 		local angle = math.random() * math.pi * 2
 		local r = GameConfig.Enemy.SpawnRadius
 		local spawnPos = Vector3.new(targetPos.X + math.cos(angle) * r, 5, targetPos.Z + math.sin(angle) * r)
+		-- Clamp to map bounds based on any large floor part named "Floor" or fallback bounds
+		local floor = workspace:FindFirstChild("Floor")
+		local minX, maxX, minZ, maxZ
+		if floor and floor:IsA("BasePart") then
+			local cf = floor.CFrame
+			local size = floor.Size
+			minX = (cf.Position.X - size.X/2) + 5
+			maxX = (cf.Position.X + size.X/2) - 5
+			minZ = (cf.Position.Z - size.Z/2) + 5
+			maxZ = (cf.Position.Z + size.Z/2) - 5
+		else
+			minX, maxX, minZ, maxZ = -200, 200, -200, 200
+		end
+		spawnPos = Vector3.new(math.clamp(spawnPos.X, minX, maxX), spawnPos.Y, math.clamp(spawnPos.Z, minZ, maxZ))
 		local enemy = createEnemy(spawnPos, math.random() < 0.25)
 		-- Basic follow behavior
 		task.spawn(function()

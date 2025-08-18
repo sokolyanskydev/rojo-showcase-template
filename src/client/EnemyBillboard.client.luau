@@ -8,6 +8,7 @@ local zoomValue: NumberValue? = ReplicatedStorage:FindFirstChild("CameraHeight")
 
 local function styleBillboard(bb: BillboardGui)
     bb.AlwaysOnTop = true
+    bb.MaxDistance = 80
     bb.StudsOffset = Vector3.new(0, 2.2, 0)
     local scale = 1
     if zoomValue and zoomValue:IsA("NumberValue") then

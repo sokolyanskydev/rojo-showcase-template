@@ -67,7 +67,7 @@ local function spawnPickup(position: Vector3, kind: string)
             local stats = player:FindFirstChild("Stats")
             local coins = stats and stats:FindFirstChild("Coins")
             if coins and coins:IsA("IntValue") then
-                coins.Value += 10
+                coins.Value += math.random(100, 300)
             end
         end
         if part then part:Destroy() end
@@ -106,7 +106,8 @@ task.spawn(function()
         local offset = Vector3.new(math.random(-60, 60), 0, math.random(-60, 60))
         local pos = base + offset
         local roll = math.random()
-        local kind = if roll < 0.45 then "Health" elseif roll < 0.9 then "Mana" else "Coin"
+        -- Favor coins (~3x over each of others)
+        local kind = if roll < 0.2 then "Health" elseif roll < 0.4 then "Mana" else "Coin"
         spawnPickup(pos, kind)
     end
 end)

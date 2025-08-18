@@ -39,6 +39,9 @@ ensureRemoteEvent("ZoomAction")
 ensureRemoteEvent("RequestCastPuddle")
 ensureRemoteEvent("ShopPurchase")
 ensureRemoteEvent("ShopOpen")
+ensureRemoteEvent("MeleeAttack")
+ensureRemoteEvent("MeleeHitVFX")
+ensureRemoteEvent("SetWeapon")
 ensureRemoteEvent("ShopPurchase")
 
 -- Expose GameConfig and Types in ReplicatedStorage for shared requires

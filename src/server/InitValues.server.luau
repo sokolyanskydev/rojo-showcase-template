@@ -43,6 +43,11 @@ local function setupPlayer(player: Player)
     addUpgrade("MaxHP")
     addUpgrade("HPRegen")
     addUpgrade("PuddleDamage")
+    -- Melee upgrades
+    addUpgrade("MeleeSplash")
+    addUpgrade("MeleeDamage")
+    addUpgrade("MeleeSpeed")
+    addUpgrade("MeleeKnockback")
 
     -- Regen loop
     task.spawn(function()

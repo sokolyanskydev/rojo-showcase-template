@@ -16,6 +16,11 @@ local PRICES = {
     MaxHP = function(level: number): number return 40 + level * 40 end,
     HPRegen = function(level: number): number return 30 + level * 30 end,
     PuddleDamage = function(level: number): number return 35 + level * 35 end,
+    -- Melee upgrades
+    MeleeSplash = function(level: number): number return 30 + level * 40 end,
+    MeleeDamage = function(level: number): number return 35 + level * 45 end,
+    MeleeSpeed = function(level: number): number return 40 + level * 40 end,
+    MeleeKnockback = function(level: number): number return 25 + level * 30 end,
 }
 
 shopEvent.OnServerEvent:Connect(function(player: Player, key: string)
@@ -64,6 +69,27 @@ local function ensureWorldShop()
     sign.Color = Color3.fromRGB(200, 200, 240)
     sign.Name = "Sign"
     sign.Parent = model
+    -- Label above shop
+    local function addLabel(face: Enum.NormalId)
+        local surface = Instance.new("SurfaceGui")
+        surface.Adornee = sign
+        surface.AlwaysOnTop = true
+        surface.Face = face
+        surface.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+        surface.PixelsPerStud = 30
+        surface.Parent = sign
+        local txt = Instance.new("TextLabel")
+        txt.Size = UDim2.new(1, 0, 1, 0)
+        txt.BackgroundTransparency = 1
+        txt.Text = "Puddle & Melee Shop"
+        txt.TextColor3 = Color3.fromRGB(20,20,30)
+        txt.TextStrokeTransparency = 0.2
+        txt.Font = Enum.Font.GothamBold
+        txt.TextScaled = true
+        txt.Parent = surface
+    end
+    addLabel(Enum.NormalId.Front)
+    addLabel(Enum.NormalId.Back)
     -- Proximity prompt to open shop UI
     local prompt = Instance.new("ProximityPrompt")
     prompt.Parent = sign

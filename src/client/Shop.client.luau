@@ -16,8 +16,8 @@ gui.Parent = player:WaitForChild("PlayerGui")
 gui.Enabled = false
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 240, 0, 180)
-frame.Position = UDim2.new(1, -260, 1, -200)
+frame.Size = UDim2.new(0, 240, 0, 300)
+frame.Position = UDim2.new(1, -260, 1, -320)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 frame.BackgroundTransparency = 0.15
 frame.Parent = gui
@@ -37,10 +37,14 @@ title.Parent = frame
 
 local items = {
     { key = "ManaRegen", text = "+1 MP/s", y = 26 },
-    { key = "PuddleRadius", text = "+2 puddle radius", y = 56 },
+    { key = "PuddleRadius", text = "+4 puddle radius", y = 56 },
     { key = "MaxHP", text = "+10 Max HP", y = 86 },
     { key = "HPRegen", text = "+1 HP/s", y = 116 },
     { key = "PuddleDamage", text = "+2 puddle DPS", y = 146 },
+    { key = "MeleeSplash", text = "+1 melee splash", y = 176 },
+    { key = "MeleeDamage", text = "+4 melee dmg", y = 206 },
+    { key = "MeleeSpeed", text = "+1 melee speed", y = 236 },
+    { key = "MeleeKnockback", text = "+5 melee knockback", y = 266 },
 }
 
 local function makeButton(item)
@@ -83,6 +87,10 @@ local function updatePrices()
                 elseif key == "MaxHP" then cost = 40 + level * 40
                 elseif key == "HPRegen" then cost = 30 + level * 30
                 elseif key == "PuddleDamage" then cost = 35 + level * 35
+                elseif key == "MeleeSplash" then cost = 30 + level * 40
+                elseif key == "MeleeDamage" then cost = 35 + level * 45
+                elseif key == "MeleeSpeed" then cost = 40 + level * 40
+                elseif key == "MeleeKnockback" then cost = 25 + level * 30
                 end
                 local baseText = baseTextAttr :: string
                 child.Text = string.format("%s | L%d | %d", baseText, level, cost)
