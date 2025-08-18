@@ -237,8 +237,16 @@ RequestCastPuddle.OnServerEvent:Connect(function(player: Player, targetPos: Vect
     local stats = player:FindFirstChild("Stats")
     local mana = stats and stats:FindFirstChild("Mana")
     local GameConfig = require(ReplicatedStorage:WaitForChild("GameConfig"))
-    if mana and mana:IsA("IntValue") and mana.Value >= GameConfig.Mana.PuddleCost then
-        mana.Value -= GameConfig.Mana.PuddleCost
+    local cost = GameConfig.Mana.PuddleCost
+    do
+        local upgrades = stats and stats:FindFirstChild("Upgrades")
+        local rUp = upgrades and upgrades:FindFirstChild("PuddleRadius")
+        if rUp and rUp:IsA("IntValue") then
+            cost += rUp.Value -- +1 cost per radius level
+        end
+    end
+    if mana and mana:IsA("IntValue") and mana.Value >= cost then
+        mana.Value -= cost
         -- replicate CastPuddle logic: clamp and create
         local character = player.Character
         if not character then return end

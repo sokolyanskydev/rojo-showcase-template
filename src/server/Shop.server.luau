@@ -22,6 +22,7 @@ local PRICES = {
     MeleeDamage = function(level: number): number return 35 + level * 45 end,
     MeleeSpeed = function(level: number): number return 40 + level * 40 end,
     MeleeKnockback = function(level: number): number return 25 + level * 30 end,
+    RunSpeed = function(level: number): number return 50 + level * 50 end,
 }
 
 shopEvent.OnServerEvent:Connect(function(player: Player, key: string)
@@ -46,6 +47,14 @@ shopEvent.OnServerEvent:Connect(function(player: Player, key: string)
         if humanoid then
             humanoid.MaxHealth += 10
             humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + 10)
+        end
+    elseif key == "RunSpeed" then
+        local character = player.Character
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            -- Set new base walk speed according to level (base 16, +1% per lvl)
+            local level = target.Value
+            humanoid.WalkSpeed = 16 * (1 + 0.01 * level)
         end
     end
 end)

@@ -57,18 +57,24 @@ local function setKingFromPlayer(player: Player, statueModel: Model)
     local old = statueModel:FindFirstChild("StatueAvatar")
     if old then old:Destroy() end
     -- Clone player's appearance
-    if player.Character then
-        local clone = player.Character:Clone()
-        clone.Name = "StatueAvatar"
-        clone:PivotTo(CFrame.new(0, 1, 220))
-        -- Freeze statue
-        for _, d in ipairs(clone:GetDescendants()) do
-            if d:IsA("BasePart") then
-                d.Anchored = true
-                d.CanCollide = false
+    local character = player.Character
+    if character and character:IsA("Model") then
+        local ok, cloneOrErr = pcall(function()
+            return character:Clone()
+        end)
+        local clone = if ok then (cloneOrErr :: any) else nil
+        if clone and clone:IsA("Model") then
+            clone.Name = "StatueAvatar"
+            clone:PivotTo(CFrame.new(0, 1, 220))
+            -- Freeze statue
+            for _, d in ipairs(clone:GetDescendants()) do
+                if d:IsA("BasePart") then
+                    d.Anchored = true
+                    d.CanCollide = false
+                end
             end
+            clone.Parent = statueModel
         end
-        clone.Parent = statueModel
     end
     -- Label with player name
     local sign = statueModel:FindFirstChild("Sign")
@@ -86,22 +92,24 @@ local sign = statue:FindFirstChild("Sign") :: BasePart
 if sign then labelStatue(sign) end
 
 -- Prompt to claim king
-local prompt = Instance.new("ProximityPrompt")
-prompt.ObjectText = "King Statue"
-prompt.ActionText = "Claim (E)"
-prompt.KeyboardKeyCode = Enum.KeyCode.E
-prompt.HoldDuration = 0
-prompt.MaxActivationDistance = 16
-prompt.RequiresLineOfSight = false
-prompt.Parent = sign
+if sign then
+    local prompt = Instance.new("ProximityPrompt")
+    prompt.ObjectText = "King Statue"
+    prompt.ActionText = "Claim (E)"
+    prompt.KeyboardKeyCode = Enum.KeyCode.E
+    prompt.HoldDuration = 0
+    prompt.MaxActivationDistance = 16
+    prompt.RequiresLineOfSight = false
+    prompt.Parent = sign
 
-prompt.Triggered:Connect(function(player: Player)
-    local stats = player:FindChild("Stats") or player:FindFirstChild("Stats")
-    local coins = stats and stats:FindFirstChild("Coins")
-    if coins and coins:IsA("IntValue") and coins.Value >= COST then
-        coins.Value -= COST
-        setKingFromPlayer(player, statue)
-    end
-end)
+    prompt.Triggered:Connect(function(player: Player)
+        local stats = player:FindFirstChild("Stats")
+        local coins = stats and stats:FindFirstChild("Coins")
+        if coins and coins:IsA("IntValue") and coins.Value >= COST then
+            coins.Value -= COST
+            setKingFromPlayer(player, statue)
+        end
+    end)
+end
 
 

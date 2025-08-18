@@ -68,4 +68,17 @@ if sharedFolder then
 	end
 end
 
+-- Ensure Boss module is available in ReplicatedStorage
+local function ensureModuleScript(name: string, srcFolder: Instance)
+    if ReplicatedStorage:FindFirstChild(name) ~= nil then return end
+    local src = srcFolder:FindFirstChild(name)
+    if src and src:IsA("ModuleScript") then
+        src:Clone().Parent = ReplicatedStorage
+    end
+end
+local serverFolder = script.Parent.Parent:FindFirstChild("server")
+if serverFolder then
+    ensureModuleScript("Boss", serverFolder)
+end
+
 

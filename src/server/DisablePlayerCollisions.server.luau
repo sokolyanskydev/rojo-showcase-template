@@ -12,6 +12,10 @@ local Players = game:GetService("Players")
 
 PhysicsService:RegisterCollisionGroup("Characters")
 PhysicsService:CollisionGroupSetCollidable("Characters", "Characters", false)
+-- Enemies group: do not collide with players, but collide with world and each other
+local ok, _ = pcall(function() PhysicsService:RegisterCollisionGroup("Enemies") end)
+PhysicsService:CollisionGroupSetCollidable("Characters", "Enemies", false)
+PhysicsService:CollisionGroupSetCollidable("Enemies", "Enemies", true)
 
 local function onDescendantAdded(descendant: Instance): ()
 	-- Set collision group for any part descendant

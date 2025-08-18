@@ -49,6 +49,7 @@ local function setupPlayer(player: Player)
     addUpgrade("MeleeDamage")
     addUpgrade("MeleeSpeed")
     addUpgrade("MeleeKnockback")
+    addUpgrade("RunSpeed")
 
     -- Regen loop
     task.spawn(function()

@@ -17,6 +17,7 @@ local RequestCastPuddle: RemoteEvent = Remotes:WaitForChild("RequestCastPuddle")
 
 local canCast = true
 local screenGui: ScreenGui? = nil
+local lastErrorAt = 0
 
 -- Optional link to weapon selector
 local Weapons: any = nil
@@ -33,6 +34,19 @@ local lastCastAt = 0
 
 local function requestCast(position: Vector3)
 	if not canCast then return end
+	-- Local affordability check
+	local stats = player:FindFirstChild("Stats")
+	local mana = stats and stats:FindFirstChild("Mana")
+	local upgrades = stats and stats:FindFirstChild("Upgrades")
+	local rUp = upgrades and upgrades:FindFirstChild("PuddleRadius")
+	local cdUp = upgrades and upgrades:FindFirstChild("PuddleCooldown")
+	local radiusBonus = (rUp and rUp:IsA("IntValue")) and rUp.Value or 0
+	local cdBonus = (cdUp and cdUp:IsA("IntValue")) and cdUp.Value or 0
+	local cost = GameConfig.Mana.PuddleCost + radiusBonus
+	if not (mana and mana:IsA("IntValue") and mana.Value >= cost) then
+		lastErrorAt = os.clock()
+		return
+	end
 	canCast = false
 	lastCastAt = os.clock()
 	-- Clamp to max cast range from character
@@ -52,11 +66,7 @@ local function requestCast(position: Vector3)
 	end
 	RequestCastPuddle:FireServer(position)
 	Logger.info("Puddle:Cast", { position = tostring(position) })
-	local stats = player:FindFirstChild("Stats")
-	local upgrades = stats and stats:FindFirstChild("Upgrades")
-	local cdUp = upgrades and upgrades:FindFirstChild("PuddleCooldown")
-	local bonus = (cdUp and cdUp:IsA("IntValue")) and cdUp.Value or 0
-	local cd = math.max(0.5, GameConfig.CastCooldownSeconds - 0.2 * bonus)
+	local cd = math.max(0.5, GameConfig.CastCooldownSeconds - 0.2 * cdBonus)
 	task.delay(cd, function()
 		canCast = true
 	end)
@@ -115,9 +125,10 @@ task.defer(function()
 		title.Visible = show
 		cd.Visible = show
 		if not show then return end
-		if not canCast then
+		if lastErrorAt > 0 and (os.clock() - lastErrorAt) < 1.5 then
+			cd.Text = "Недостаточно маны"
+		elseif not canCast then
 			local elapsed = os.clock() - lastCastAt
-			local bonusLabel = ""
 			local stats = player:FindFirstChild("Stats")
 			local upgrades = stats and stats:FindFirstChild("Upgrades")
 			local cdUp = upgrades and upgrades:FindFirstChild("PuddleCooldown")

@@ -22,8 +22,16 @@ local SPRINT_ACTION_TITLE: string = script:GetAttribute("Title") :: string or "S
 local SPRINT_ACTION_DESCRIPTION: string = "Start sprinting."
 
 -- Keep track of the original walkspeed and a multiplier to use for sprinting
-local WALK_SPEED: number = humanoid.WalkSpeed
+local DEFAULT_WALK_SPEED: number = 16
 local SPRINT_SPEED_MULTIPLIER: number = script:GetAttribute("WalkSpeedMultiplier") :: number or 2
+
+local function getBaseWalkSpeed(): number
+	local stats = player:FindFirstChild("Stats")
+	local upgrades = stats and stats:FindFirstChild("Upgrades")
+	local runUp = upgrades and upgrades:FindFirstChild("RunSpeed")
+	local level = (runUp and runUp:IsA("IntValue")) and runUp.Value or 0
+	return DEFAULT_WALK_SPEED * (1 + 0.01 * level)
+end
 
 -- Define buttons to use for sprinting on both keyboard and gamepad
 local SPRINT_BUTTON_KEYBOARD: Enum.KeyCode = Enum.KeyCode.LeftShift
@@ -40,10 +48,10 @@ local function handleAction(actionName: string, inputState: Enum.UserInputState)
 	if actionName == SPRINT_ACTION then
 		if inputState == Enum.UserInputState.Begin then
 			-- If the input is beginning, set the humanoid's WalkSpeed based on SPRINT_SPEED_MULTIPLIER
-			humanoid.WalkSpeed = WALK_SPEED * SPRINT_SPEED_MULTIPLIER
+			humanoid.WalkSpeed = getBaseWalkSpeed() * SPRINT_SPEED_MULTIPLIER
 		elseif inputState == Enum.UserInputState.End then
 			-- If the input is ending, set the humanoid's WalkSpeed back to its default
-			humanoid.WalkSpeed = WALK_SPEED
+			humanoid.WalkSpeed = getBaseWalkSpeed()
 		end
 	end
 end
@@ -60,3 +68,16 @@ ContextActionService:SetPosition(SPRINT_ACTION, UDim2.new(1, -70, 0, 10))
 ContextActionService:SetTitle(SPRINT_ACTION, SPRINT_ACTION_TITLE)
 -- Set the description of the mobile button
 ContextActionService:SetDescription(SPRINT_ACTION, SPRINT_ACTION_DESCRIPTION)
+
+-- Keep base speed updated when not sprinting
+spawn(function()
+	while true do
+		wait(0.5)
+		if humanoid then
+			local base = getBaseWalkSpeed()
+			if humanoid.WalkSpeed <= base * 1.05 then
+				humanoid.WalkSpeed = base
+			end
+		end
+	end
+end)

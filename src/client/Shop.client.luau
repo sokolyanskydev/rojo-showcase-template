@@ -48,6 +48,7 @@ local items = {
     { key = "MeleeDamage", text = "+4 melee dmg", pos = UDim2.new(0, 164, 0, 56) },
     { key = "MeleeSpeed", text = "+1 melee speed", pos = UDim2.new(0, 164, 0, 86) },
     { key = "MeleeKnockback", text = "+5 melee knockback", pos = UDim2.new(0, 164, 0, 116) },
+    { key = "RunSpeed", text = "+1% run speed", pos = UDim2.new(0, 164, 0, 146) },
 }
 
 local function makeButton(item)
@@ -85,7 +86,7 @@ local function updatePrices()
                 local val = upgrades:FindFirstChild(key)
                 local level = (val and val:IsA("IntValue")) and val.Value or 0
                 local cost = 0
-                if key == "ManaRegen" then cost = 25 + level * 25
+                if key == "ManaRegen" then cost = 35 + level * 35
                 elseif key == "PuddleRadius" then cost = 30 + level * 30
                 elseif key == "MaxHP" then cost = 40 + level * 40
                 elseif key == "HPRegen" then cost = 30 + level * 30
@@ -95,6 +96,7 @@ local function updatePrices()
                 elseif key == "MeleeDamage" then cost = 35 + level * 45
                 elseif key == "MeleeSpeed" then cost = 40 + level * 40
                 elseif key == "MeleeKnockback" then cost = 25 + level * 30
+                elseif key == "RunSpeed" then cost = 50 + level * 50
                 end
                 local baseText = baseTextAttr :: string
                 child.Text = string.format("%s | L%d | %d", baseText, level, cost)
