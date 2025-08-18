@@ -43,6 +43,7 @@ local function setupPlayer(player: Player)
     addUpgrade("MaxHP")
     addUpgrade("HPRegen")
     addUpgrade("PuddleDamage")
+    addUpgrade("PuddleCooldown")
     -- Melee upgrades
     addUpgrade("MeleeSplash")
     addUpgrade("MeleeDamage")

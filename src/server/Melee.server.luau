@@ -64,10 +64,22 @@ local function performAttack(player: Player)
                     local dmg = 12 + 6 * ups.Damage
                     humanoid:TakeDamage(dmg)
                     -- knockback
-                    -- Knockback force: push target away from player, scale by mass and upgrade
+                    -- Knockback: use LinearVelocity for a brief push affecting live enemies
                     local mass = enemyRoot:GetMass()
-                    local kb = (22 + 8 * ups.Knockback) * mass
-                    enemyRoot:ApplyImpulse(dir * kb)
+                    local kbSpeed = 30 + 10 * ups.Knockback
+                    local lv = Instance.new("LinearVelocity")
+                    lv.Attachment0 = (function()
+                        local a = enemyRoot:FindFirstChildOfClass("Attachment")
+                        if not a then
+                            a = Instance.new("Attachment")
+                            a.Parent = enemyRoot
+                        end
+                        return a
+                    end)()
+                    lv.MaxForce = math.huge
+                    lv.VectorVelocity = dir * kbSpeed
+                    lv.Parent = enemyRoot
+                    game:GetService("Debris"):AddItem(lv, 0.2)
                     -- tell client to play hit vfx on target
                     local remotes = ReplicatedStorage:WaitForChild("Remotes")
                     local vfx: RemoteEvent = remotes:WaitForChild("MeleeHitVFX") :: any

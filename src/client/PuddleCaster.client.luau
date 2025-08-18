@@ -52,7 +52,12 @@ local function requestCast(position: Vector3)
 	end
 	RequestCastPuddle:FireServer(position)
 	Logger.info("Puddle:Cast", { position = tostring(position) })
-	task.delay(GameConfig.CastCooldownSeconds, function()
+	local stats = player:FindFirstChild("Stats")
+	local upgrades = stats and stats:FindFirstChild("Upgrades")
+	local cdUp = upgrades and upgrades:FindFirstChild("PuddleCooldown")
+	local bonus = (cdUp and cdUp:IsA("IntValue")) and cdUp.Value or 0
+	local cd = math.max(0.5, GameConfig.CastCooldownSeconds - 0.2 * bonus)
+	task.delay(cd, function()
 		canCast = true
 	end)
 end
@@ -106,13 +111,19 @@ task.defer(function()
 
 	local function updateUI()
 		local weapon = tostring(player:GetAttribute("CurrentWeapon") or "Puddle")
-		local show = weapon == "Puddle"
+		local show = weapon == "П" and false or (weapon == "Puddle")
 		title.Visible = show
 		cd.Visible = show
 		if not show then return end
 		if not canCast then
 			local elapsed = os.clock() - lastCastAt
-			local remain = math.max(0, GameConfig.CastCooldownSeconds - elapsed)
+			local bonusLabel = ""
+			local stats = player:FindFirstChild("Stats")
+			local upgrades = stats and stats:FindFirstChild("Upgrades")
+			local cdUp = upgrades and upgrades:FindFirstChild("PuddleCooldown")
+			local bonus = (cdUp and cdUp:IsA("IntValue")) and cdUp.Value or 0
+			local cdval = math.max(0.5, GameConfig.CastCooldownSeconds - 0.2 * bonus)
+			local remain = math.max(0, cdval - elapsed)
 			cd.Text = string.format("КД: %.1fs", remain)
 		else
 			cd.Text = "Готово"

@@ -16,6 +16,7 @@ local PRICES = {
     MaxHP = function(level: number): number return 40 + level * 40 end,
     HPRegen = function(level: number): number return 30 + level * 30 end,
     PuddleDamage = function(level: number): number return 35 + level * 35 end,
+    PuddleCooldown = function(level: number): number return 50 + level * 50 end,
     -- Melee upgrades
     MeleeSplash = function(level: number): number return 30 + level * 40 end,
     MeleeDamage = function(level: number): number return 35 + level * 45 end,

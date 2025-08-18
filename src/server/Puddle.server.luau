@@ -105,6 +105,16 @@ task.spawn(function()
         local base = hrp.Position
         local offset = Vector3.new(math.random(-60, 60), 0, math.random(-60, 60))
         local pos = base + offset
+        -- Clamp pickups to floor bounds if available
+        local floor = workspace:FindFirstChild("Floor")
+        if floor and floor:IsA("BasePart") then
+            local cf, size = floor.CFrame, floor.Size
+            local minX = (cf.Position.X - size.X/2) + 5
+            local maxX = (cf.Position.X + size.X/2) - 5
+            local minZ = (cf.Position.Z - size.Z/2) + 5
+            local maxZ = (cf.Position.Z + size.Z/2) - 5
+            pos = Vector3.new(math.clamp(pos.X, minX, maxX), pos.Y, math.clamp(pos.Z, minZ, maxZ))
+        end
         local roll = math.random()
         -- Favor coins (~3x over each of others)
         local kind = if roll < 0.2 then "Health" elseif roll < 0.4 then "Mana" else "Coin"

@@ -36,21 +36,24 @@ title.TextSize = 16
 title.Parent = frame
 
 local items = {
-    { key = "ManaRegen", text = "+1 MP/s", y = 26 },
-    { key = "PuddleRadius", text = "+4 puddle radius", y = 56 },
-    { key = "MaxHP", text = "+10 Max HP", y = 86 },
-    { key = "HPRegen", text = "+1 HP/s", y = 116 },
-    { key = "PuddleDamage", text = "+2 puddle DPS", y = 146 },
-    { key = "MeleeSplash", text = "+1 melee splash", y = 176 },
-    { key = "MeleeDamage", text = "+4 melee dmg", y = 206 },
-    { key = "MeleeSpeed", text = "+1 melee speed", y = 236 },
-    { key = "MeleeKnockback", text = "+5 melee knockback", y = 266 },
+    -- Puddle column (left)
+    { key = "ManaRegen", text = "+1 MP/s", pos = UDim2.new(0, 6, 0, 26) },
+    { key = "PuddleRadius", text = "+4 puddle radius", pos = UDim2.new(0, 6, 0, 56) },
+    { key = "MaxHP", text = "+10 Max HP", pos = UDim2.new(0, 6, 0, 86) },
+    { key = "HPRegen", text = "+1 HP/s", pos = UDim2.new(0, 6, 0, 116) },
+    { key = "PuddleDamage", text = "+2 puddle DPS", pos = UDim2.new(0, 6, 0, 146) },
+    { key = "PuddleCooldown", text = "-0.2s puddle CD", pos = UDim2.new(0, 6, 0, 176) },
+    -- Melee column (right)
+    { key = "MeleeSplash", text = "+1 melee splash", pos = UDim2.new(0, 126, 0, 26) },
+    { key = "MeleeDamage", text = "+4 melee dmg", pos = UDim2.new(0, 126, 0, 56) },
+    { key = "MeleeSpeed", text = "+1 melee speed", pos = UDim2.new(0, 126, 0, 86) },
+    { key = "MeleeKnockback", text = "+5 melee knockback", pos = UDim2.new(0, 126, 0, 116) },
 }
 
 local function makeButton(item)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -12, 0, 24)
-    btn.Position = UDim2.new(0, 6, 0, item.y)
+    btn.Size = UDim2.new(0, 108, 0, 24)
+    btn.Position = item.pos
     btn.Text = item.text
     btn.Name = item.key
     btn:SetAttribute("baseText", item.text)
@@ -87,6 +90,7 @@ local function updatePrices()
                 elseif key == "MaxHP" then cost = 40 + level * 40
                 elseif key == "HPRegen" then cost = 30 + level * 30
                 elseif key == "PuddleDamage" then cost = 35 + level * 35
+                elseif key == "PuddleCooldown" then cost = 50 + level * 50
                 elseif key == "MeleeSplash" then cost = 30 + level * 40
                 elseif key == "MeleeDamage" then cost = 35 + level * 45
                 elseif key == "MeleeSpeed" then cost = 40 + level * 40
